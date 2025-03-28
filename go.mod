@@ -3,6 +3,7 @@ module coupon-issuance-system.com/coupon-issuance-system
 go 1.23.5
 
 require (
+	github.com/jmoiron/sqlx v1.4.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
