@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package coupon;
+option go_package = "coupon/pb";
+
+service CouponService {
+    rpc CreateCampaign (CreateCampaignRequest) returns (CreateCampaignResponse); // 캠페인 생성
+    rpc UpdateCampaign (UpdateCampaignRequest) returns (UpdateCampaignResponse); // 캠페인 수정
+    rpc GetCampaign (GetCampaignRequest) returns (GetCampaignResponse); // 캠페인 검색
+    rpc IssueCoupon (IssueCouponRequest) returns (IssueCouponResponse); // 쿠폰 발급
+}
+
+// 캠페인 생성 요청
+message CreateCampaignRequest {
+    string name = 2; // 캠페인 이름
+    int32 total_coupons = 3; // 총 쿠폰 개수
+    string avaliable_at = 4; // 캠페인 시작 날짜(쿠폰 발급 날짜) format (예: "2025-03-28T12:00:00Z")
+    int32 status = 5; // 0: 캠페인 닫힘, 1: 캠페인 열림
+}
+
+// 캠페인 생성 응답
+message CreateCampaignResponse {
+    string campaign_id = 1;
+}
+
+// 캠페인 수정 요청
+message UpdateCampaignRequest {
+    int32 campaign_id = 1;
+    string name = 2;
+    int32 total_coupons = 3;
+    string avaliable_at = 4; // format (예: "2025-03-28T12:00:00Z")
+    int32 status = 5;
+}
+
+// 캠페인 수정 응답
+message UpdateCampaignResponse {
+    string campaign_id = 1;    
+}
+
+// 발급 쿠폰 데이터
+message IssuedCoupon {
+    string code = 1;
+    int32 campaign_id = 2;
+}
+
+// 캠페인 검색 요청
+message GetCampaignRequest {
+    string campaign_id = 1;
+}
+
+// 캠페인 검색 응답
+message GetCampaignResponse {
+    int32 campaign_id = 1;
+    string name = 2;
+    int32 total_coupons = 3;
+    string start_at = 4; // format (예: "2025-03-28T12:00:00Z")
+    int32 status = 5;
+    repeated IssuedCoupon issued_coupons = 6;
+}
+
+// 쿠폰 발급 요청
+message IssueCouponRequest {
+    string campaign_id = 1;
+}
+
+// 쿠폰 발급 응답
+message IssueCouponResponse {
+    string coupon_code = 1;
+    string campaign_id = 2;
+}
