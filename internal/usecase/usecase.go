@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -55,9 +56,11 @@ func (u *CouponUseCase) UpdateCampagin(input *pb.UpdateCampaignRequest) (*pb.Upd
 	}
 
 	err = u.repository.UpdateCampagin(model.CampaginEntity{
+		CampaginId:   int(input.CampaignId),
 		Name:         input.Name,
 		AvaliableAt:  avaliableAt,
 		TotalCoupons: int(input.TotalCoupons),
+		Status:       int(input.Status),
 	})
 
 	if err != nil {
@@ -69,21 +72,21 @@ func (u *CouponUseCase) UpdateCampagin(input *pb.UpdateCampaignRequest) (*pb.Upd
 	}, nil
 }
 
-func (u *CouponUseCase) GetCampagin(input *pb.GetCampaignRequest) (*pb.GetCampaignResponse, error) {
-	campaign, isExist := u.repository.GetCampaignById(int(input.CampaignId))
+func (u *CouponUseCase) GetCampagin(id int) (*pb.GetCampaignResponse, error) {
+	campaign, isExist := u.repository.GetCampaignById(id)
 	if !isExist {
-		return nil, fmt.Errorf("not exist campaign id: %d", input.CampaignId)
+		return nil, fmt.Errorf("not exist campaign id: %d", id)
 	}
 
 	returnData := &pb.GetCampaignResponse{
-		CampaignId:   input.CampaignId,
+		CampaignId:   int32(id),
 		Name:         campaign.Name,
 		TotalCoupons: int32(campaign.TotalCoupons),
 		AvaliableAt:  campaign.AvaliableAt.Format(time.RFC3339),
 		Status:       int32(campaign.Status),
 	}
 
-	list := u.repository.GetCouponsByCampaignId(int(input.CampaignId))
+	list := u.repository.GetCouponsByCampaignId(id)
 	returnData.IssuedCoupons = make([]*pb.IssuedCoupon, 0, len(list))
 
 	for _, data := range list {
@@ -96,7 +99,25 @@ func (u *CouponUseCase) GetCampagin(input *pb.GetCampaignRequest) (*pb.GetCampai
 	return returnData, nil
 }
 
+func (u *CouponUseCase) ValidationCampaign(data *pb.GetCampaignResponse) bool {
+	avaliableAt, _ := time.Parse(time.RFC3339, data.AvaliableAt)
+	if time.Now().Before(avaliableAt) {
+		return false
+	}
+	return int(data.TotalCoupons) > len(data.IssuedCoupons)
+}
+
 func (u *CouponUseCase) IssueCoupon(input *pb.IssueCouponRequest) (*pb.IssueCouponResponse, error) {
 	// todo 쿠폰 발급 로직 구현
+	campaign, err := u.GetCampagin(int(input.CampaignId))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !u.ValidationCampaign(campaign) {
+		return nil, errors.New("max coupon")
+	}
+
 	return nil, nil
 }

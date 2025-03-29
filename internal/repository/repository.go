@@ -1,18 +1,13 @@
 package repository
 
 import (
-	"time"
-
 	"coupon-issuance-system.com/coupon-issuance-system/internal/model"
 	"coupon-issuance-system.com/coupon-issuance-system/pkg/database"
+	"github.com/jmoiron/sqlx"
 )
 
-/*
-	보완사항: 현재 인스턴스 메모리에 저장하는 데이터를 RDBMS 혹은 NoSQL 데이터베이스 저장소로 변경
-*/
-
 type CouponRepository struct {
-	database *database.DataStore
+	database *sqlx.DB
 }
 
 var (
@@ -22,55 +17,80 @@ var (
 func GetRepository() *CouponRepository {
 	if repository == nil {
 		repository = &CouponRepository{
-			database: database.GetDataStore(),
+			database: database.Connect(),
 		}
 	}
 	return repository
 }
 
 func (r *CouponRepository) CreateCampagin(campagin model.CampaginEntity) (int, error) {
-	id := r.database.GetMaxCampaignsId()
+	result, err := r.database.Exec(`
+	INSERT INTO campagin 
+	SET name = ?,
+	total_coupons = ?,
+	avaliable_at = ?,
+	status = ?
+	`, campagin.Name, campagin.TotalCoupons, campagin.AvaliableAt, campagin.Status)
 
-	campagin.CreatedAt = time.Now()
-	campagin.CampaginId = id + 1
+	if err != nil {
+		return 0, err
+	}
 
-	r.database.Campaigns[campagin.CampaginId] = campagin
-	r.database.IncreaseMaxCampaignsId()
-
-	return campagin.CampaginId, nil
+	id, _ := result.LastInsertId()
+	return int(id), err
 }
 
 func (r *CouponRepository) UpdateCampagin(campagin model.CampaginEntity) error {
-	r.database.Campaigns[campagin.CampaginId] = campagin
-	return nil
+	_, err := r.database.Exec(`
+	UPDATE INTO campagin 
+	SET name = ?,
+	total_coupons = ?,
+	avaliable_at = ?,
+	status = ? 
+	WHERE campagin_id = ? 
+	`,
+		campagin.Name,
+		campagin.TotalCoupons,
+		campagin.AvaliableAt,
+		campagin.Status,
+		campagin.CampaginId)
+
+	return err
 }
 
 func (r *CouponRepository) GetCampaignById(campaginId int) (model.CampaginEntity, bool) {
-	if data, isExist := r.database.Campaigns[campaginId]; !isExist {
+	campaign := []model.CampaginEntity{}
+	r.database.Select(
+		&campaign,
+		`SELECT * FROM campagin 
+		WHERE campagin_id = ? 
+		`,
+		campaginId,
+	)
+	if len(campaign) == 0 {
 		return model.CampaginEntity{}, false
-	} else {
-		return data, true
 	}
+	return campaign[0], true
 }
 
 func (r *CouponRepository) IssueCoupon(coupon model.CouponEntity) error {
-	coupon.IsUsed = false
-	coupon.CreatedAt = time.Now()
-	r.database.Coupons[coupon.CampaginId][coupon.CouponCode] = coupon
-	return nil
+	_, err := r.database.Exec(`
+	INSERT INTO coupon 
+	SET campagin_id = ?,
+	coupon_code = ?,
+	is_used = 0
+	`, coupon.CampaginId, coupon.CouponCode)
+	return err
 }
 
 func (r *CouponRepository) GetCouponsByCampaignId(campaginId int) []model.CouponEntity {
-	data, isExist := r.database.Coupons[campaginId]
 	list := []model.CouponEntity{}
-
-	if !isExist {
-		return list
-	}
-
-	for _, v := range data {
-		list = append(list, v)
-	}
-
+	r.database.Select(
+		&list,
+		`SELECT * FROM coupon 
+		WHERE campagin_id = ? 
+		`,
+		campaginId,
+	)
 	return list
 }

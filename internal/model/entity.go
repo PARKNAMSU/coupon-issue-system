@@ -16,9 +16,13 @@ type CampaginEntity struct { // campaginId UNIQ
 }
 
 type CouponEntity struct { // (campaginId, couponCode) UNIQ
-	CampaginId int          `db:"campagin_id"` // 연결된 캠페인
-	CouponCode string       `db:"coupon_code"` // 쿠폰 코드
-	IsUsed     bool         `db:"isUsed"`      // 쿠폰 사용 번호
-	CreatedAt  time.Time    `db:"created_at"`  // 생성 날짜
-	UsedAt     sql.NullTime `db:"used_at"`     // 사용날짜
+	CampaginId     int          `db:"campagin_id"`     // 연결된 캠페인
+	CouponCode     string       `db:"coupon_code"`     // 쿠폰 코드
+	ReceiveAccount string       `db:"receive_account"` // 쿠폰 전달받을 계정
+	ReceiveMethod  string       `db:"receive_method"`  // 쿠폰 전달받을 방법
+	IsReceived     int          `db:"is_received"`     // 쿠폰 전달 여부
+	IsUsed         int          `db:"is_used"`         // 쿠폰 사용 여부
+	CreatedAt      time.Time    `db:"created_at"`      // 생성 날짜
+	ReceivedAt     sql.NullTime `db:"received_at"`     // 쿠폰 전달 날짜
+	UsedAt         sql.NullTime `db:"used_at"`         // 사용날짜
 }
