@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 
 	"coupon-issuance-system.com/coupon-issuance-system/internal/usecase"
 	pb "coupon-issuance-system.com/coupon-issuance-system/proto"
@@ -26,17 +27,18 @@ func GetService() *CouponService {
 }
 
 func (s *CouponService) CreateCampagin(ctx context.Context, req *pb.CreateCampaignRequest) (*pb.CreateCampaignResponse, error) {
-	return nil, nil
+	log.Println("call")
+	return s.usecase.CreateCampagin(req)
 }
 
 func (s *CouponService) UpdateCampaign(ctx context.Context, req *pb.UpdateCampaignRequest) (*pb.UpdateCampaignResponse, error) {
-	return nil, nil
+	return s.usecase.UpdateCampagin(req)
 }
 
 func (s *CouponService) GetCampaign(ctx context.Context, req *pb.GetCampaignRequest) (*pb.GetCampaignResponse, error) {
-	return nil, nil
+	return s.usecase.GetCampagin(int(req.CampaignId))
 }
 
 func (s *CouponService) IssueCoupon(ctx context.Context, req *pb.IssueCouponRequest) (*pb.IssueCouponResponse, error) {
-	return nil, nil
+	return s.usecase.IssueCoupon(req)
 }

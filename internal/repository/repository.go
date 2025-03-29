@@ -78,8 +78,11 @@ func (r *CouponRepository) IssueCoupon(coupon model.CouponEntity) error {
 	INSERT INTO coupon 
 	SET campagin_id = ?,
 	coupon_code = ?,
-	is_used = 0
-	`, coupon.CampaginId, coupon.CouponCode)
+	is_used = 0,
+	is_received = 0,
+	receive_account = ?,
+	receive_method = ?
+	`, coupon.CampaginId, coupon.CouponCode, coupon.ReceiveAccount, coupon.ReceiveMethod)
 	return err
 }
 

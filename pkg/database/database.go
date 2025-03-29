@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -28,6 +30,7 @@ func Connect() *sqlx.DB {
 	if db == nil {
 		conn, err := sqlx.Connect("mysql", getConnect())
 		if err != nil {
+			log.Println(err)
 			log.Panicln(err.Error())
 			return nil
 		}

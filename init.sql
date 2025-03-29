@@ -10,7 +10,7 @@ CREATE TABLE `campagin` ( -- 캠페인 테이블
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `coupon` ( -- 쿠폰 등록 테이블
-    `campagin_id` INT AUTO_INCREMENT PRIMARY KEY COMMENT "연결된 캠페인 아이디",
+    `campagin_id` INT NOT NULL COMMENT "연결된 캠페인 아이디",
     `coupon_code` VARCHAR(50) NOT NULL COMMENT "쿠폰 코드",
     `receive_account` VARCHAR(50) NOT NULL COMMENT "전달받을 계정",
     `receive_method` VARCHAR(10) NOT NULL COMMENT "전달받을 방법 ex) email, phone, account ...",

@@ -7,10 +7,9 @@ import (
 	"coupon-issuance-system.com/coupon-issuance-system/internal/model"
 )
 
-// 캠페인별 큐 구조체
-type queue struct {
-	ch chan model.CouponEntity // 쿠폰 요청을 처리할 채널
-}
+var (
+	issueQueue *IssueQueue
+)
 
 // IssueQueue 구조체
 type IssueQueue struct {
@@ -20,9 +19,12 @@ type IssueQueue struct {
 
 // IssueQueue 초기화 함수
 func GetIssueQueue() *IssueQueue {
-	return &IssueQueue{
-		queueByCampaignId: make(map[int]chan model.CouponEntity),
+	if issueQueue == nil {
+		issueQueue = &IssueQueue{
+			queueByCampaignId: make(map[int]chan model.CouponEntity),
+		}
 	}
+	return issueQueue
 }
 
 // 특정 캠페인에 쿠폰을 추가하는 함수

@@ -61,10 +61,11 @@ message GetCampaignResponse {
 // 쿠폰 발급 요청
 message IssueCouponRequest {
     int32  campaign_id = 1;
+    string receive_account = 2;
+    string receive_method = 3;
 }
 
 // 쿠폰 발급 응답
 message IssueCouponResponse {
-    string coupon_code = 1;
-    int32 campaign_id = 2;
+    string message = 1;
 }

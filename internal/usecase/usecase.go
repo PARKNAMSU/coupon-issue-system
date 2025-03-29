@@ -7,6 +7,8 @@ import (
 
 	"coupon-issuance-system.com/coupon-issuance-system/internal/model"
 	"coupon-issuance-system.com/coupon-issuance-system/internal/repository"
+	"coupon-issuance-system.com/coupon-issuance-system/pkg/queue"
+	"coupon-issuance-system.com/coupon-issuance-system/pkg/tool"
 	pb "coupon-issuance-system.com/coupon-issuance-system/proto"
 )
 
@@ -108,16 +110,42 @@ func (u *CouponUseCase) ValidationCampaign(data *pb.GetCampaignResponse) bool {
 }
 
 func (u *CouponUseCase) IssueCoupon(input *pb.IssueCouponRequest) (*pb.IssueCouponResponse, error) {
-	// todo 쿠폰 발급 로직 구현
 	campaign, err := u.GetCampagin(int(input.CampaignId))
+
+	code := tool.GenerateRandomString(10)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if !u.ValidationCampaign(campaign) {
-		return nil, errors.New("max coupon")
+		return nil, errors.New("can't generate coupon")
 	}
+
+	for _, coupon := range campaign.IssuedCoupons {
+		if code == coupon.Code {
+			code = tool.GenerateRandomString(10)
+			break
+		}
+	}
+
+	queue := queue.GetIssueQueue()
+
+	go queue.InQueue(
+		int(input.CampaignId),
+		model.CouponEntity{
+			CampaginId:     int(input.CampaignId),
+			CouponCode:     code,
+			ReceiveAccount: input.ReceiveAccount,
+			ReceiveMethod:  input.ReceiveMethod,
+		},
+	)
+	go queue.DeQueue(
+		int(campaign.CampaignId),
+		func(coupon model.CouponEntity) {
+			// 쿠폰 검증 후 검증 완료 시 데이터 삽입 및 알람.
+		},
+	)
 
 	return nil, nil
 }
